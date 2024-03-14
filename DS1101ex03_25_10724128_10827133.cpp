@@ -1,479 +1,287 @@
-// 10724128 �d�t�� 10827133 �H���
-// �i�u��j�V�i�sĶ�ﶵ�j�V�i�sĶ���j�Ŀ�i�sĶ�ɥ[�J�H�U�R�O�j
-// �[�J�i-std=c++11�j �A�Y�i�B�@�C
-
-#include <iostream>
-#include <string>
-#include <cstdlib>
-#include <iomanip>
-#include <cmath>
-#include <new>
-#include <cmath>
-#include <vector>
-#include <fstream>
+//10827157 吳添聖 & 10827133 鄧梓岑 
 #include <stdio.h>
-#include <stdlib.h>
+#include <iostream> // cin, cout, endl
+#include <cstdlib> // strtoul, system
+#include <vector>
+#include <string.h>
+
 
 using namespace std ;
 
-struct Node{
+struct Formula {
+	
+	string data ;
+	Formula *next ;
+};	
 
-    string data = "" ;
-    struct Node *next ;
+Formula *head = new Formula ;
+Formula *current = head ;
 
-} ;
+char temp[100] ; // 存取一開始輸入的式子 
+char postfix[100] ; // 後序式
 
-typedef struct Node node ;
+Formula *ptop = new Formula ;
+Formula *post = ptop ; // 存後序式的linklist 
 
-node *head ;
-
-char skipwhite() {
-
-    char input ;
-    scanf( "%c", &input ) ;
-    while ( input == ' ' || input == '\t' ) scanf( "%c", &input ) ;
-    return input ;
-
-} // skipwhite()
-
-bool isspecial( char input ) {
-
-    if ( ( input >= '*' && input <= '+' ) || input == '-' || input == '/' )  return true ;
-    return false ;
-
-} // isspecial()
-
-void del( Node *input ) {
-
-    Node *current ;
-    current = new Node ;
-    current->next = NULL ;
-
-    while ( input != NULL ) {
-
-        current = input ;
-        input = input->next ;
-        delete current ;
-
-    } // while
-
-} // del
-
-bool readlist () {
-
-    char input ;
-    bool spe = false, needoperator = false, fir = true ;
-    int small = 0, middle = 0, big = 0 ;
-    int numCount = 0 , specialCount = 0 ;
-    node *current, *tail ;
-
-    input = skipwhite() ;
-    head = new node ;
-    tail = new node ;
-    head->next = NULL ;
-    tail->next = NULL ;
-    if ( input == '\n' ) input = skipwhite() ;
-    while ( input != '\n' ) {
-
-        current = new node ;
-        current->next = NULL ;
-        if ( isspecial( input ) && spe == false ) {
-            spe = true ;
-            needoperator = false ;
-            current->data +=input ;
-            specialCount++ ;
-
-            if ( fir ) {
-
-                cout << "Error 3 : There is one incorrect operator" << endl ;
-                while ( input != '\n' ) input = skipwhite() ;
-                del( tail) ;
-                del( current) ;
-                return false ;
-
-            } // if
-            else {
-
-                tail->next = current ;
-                tail = current ;
-                tail->next = NULL ;
-
-            } // else
-
-            input = skipwhite() ;
-
-        } // if
-        else if ( input == '(' || input == '[' || input == '{' ) {
-
-            current->data +=input ;
-            if ( input == '(' ) small++ ;
-            if ( input == '[' ) middle++ ;
-            if ( input == '{' ) big++ ;
-            if ( fir ) {
-
-                head = current ;
-                tail = current ;
-                fir = false ;
-
-            } // if
-            else if ( spe == true ){
-
-                tail->next = current ;
-                tail = current ;
-                tail->next = NULL ;
-
-            } // else
-            else {
-
-                cout << "Error 3 : There is one extra operand" << endl ;
-                while ( input != '\n' ) input = skipwhite() ;
-                del( tail) ;
-                del( current) ;
-                return false ;
-
-            }
-            spe = true ;
-            input = skipwhite() ;
-
-        } // else if
-        else if ( ( input == ')' || input == ']' || input == '}' ) && spe == false ) {
-
-            current->data +=input ;
-            needoperator = true ;
-            if ( input == ')' ) small-- ;
-            if ( input == ']' ) middle-- ;
-            if ( input == '}' ) big-- ;
-            if ( fir ) {
-
-                cout << "Error 2 : There is one incorrect parenthesis" << endl ;
-                while ( input != '\n' ) input = skipwhite() ;
-                del( tail) ;
-                del( current) ;
-                return false ;
-
-            } // if
-            else {
-
-                tail->next = current ;
-                tail = current ;
-                tail->next = NULL ;
-
-            } // else
-            input = skipwhite() ;
-
-        } // else if
-        else if ( ( input >= '0' && input <= '9' ) && needoperator == false ){
-            spe = false ;
-            string temp = "" ;
-            while ( ( input >= '0' && input <= '9' ) ) {
-                temp += input ;
-                input = skipwhite() ;
-            } // while
-            current->data = temp ;
-            numCount++ ;
-            if ( fir ) {
-
-                head = current ;
-                tail = current ;
-                fir = false ;
-
-            } // if
-            else {
-
-                tail->next = current ;
-                tail = current ;
-                tail->next = NULL ;
-
-            } // else
-
-        } // else if
-        else if ( needoperator ){
-
-            cout << "Error 3 : There is one extra operand" << endl ;
-            while ( input != '\n' ) input = skipwhite() ;
-            del( tail) ;
-            del( current) ;
-            return false ;
-
-        } // else if
-        else if ( isspecial( input ) && spe == true ) {
-
-            cout << "Error 3 : There is one extra operator" << endl ;
-            while ( input != '\n' ) input = skipwhite() ;
-            del( tail) ;
-            del( current) ;
-            return false ;
-
-        } // else if
-        else {
-
-            cout << "Error 1 : " << input << " is not a legitimate character" << endl ;
-            while ( input != '\n' ) input = skipwhite() ;
-            del( tail) ;
-            del( current) ;
-            return false ;
-
-        }
-    } // while
-
-    if ( small != 0 || middle != 0 || big != 0 ) {
-        cout << "Error 2 : There is one extra open parenthesis" << endl ;
-        return false ;
-    }
-
-
-    if (( numCount -  specialCount) != 1 ) {
-            cout << "Error 3 : There is one extra operator" << endl ;
-            while ( input != '\n' ) input = skipwhite() ;
-            return false ;
-
-        } // else if
-
-    cout << "It is a legitimate infix expression" << endl ;
-    tail = NULL ;
-    current = NULL ;
-    del( tail) ;
-    del( current) ;
-    return true ;
-
-} // readline()
-
-
-// Stack ---------------------------------------------------------------------------------------------------------------------------------
-
-class StackList;
-
-class StackNode{
-private:
-    string data; // �s�����
-    StackNode *next; // ���V�U�@��
+class stracklist {
 public:
-    StackNode() {};
-    StackNode(string x){
-        data = x ; // �K�[���
-    }
-
-    friend class StackList;
-};
-
-class StackList{
-private:
-    StackNode *top ;     // remember the address of top element
-    int size;           // number of elements in Stack
-public:
-    StackList():size(0),top(0){};
-    void Push(string x);
-    void Pop();
-    bool IsEmpty();
-    string Top();
-    int getSize();
-    void destroy() ;
-};
-
-void StackList::Push(string x){
-
-    if (IsEmpty()) {
-        top = new StackNode(x);
-        top -> next = NULL ;
-        size++;
-        return;
-    }
-
-    StackNode *newnode = new StackNode(x);  // Push_front() in Linked list
-    newnode->next = top;
-    top = newnode;
-    size++;
-}
-
-void StackList::Pop(){
-
-    if (IsEmpty()) {
-        //std::cout << "Stack is empty.\n";
-        return;
-    }
-
-    StackNode *deletenode = top;
-    top = top->next;
-    delete deletenode;
-    deletenode = 0;
-    size--;
-}
-
-bool StackList::IsEmpty(){
-    if ( size == 0 ) {
-        top = NULL ;
-         return true;
-    }
-    else
-        return false ;
-        // if size==0, return true
-}
-
-string StackList::Top(){
-
-    if (IsEmpty()) {
-        //std::cout << "Stack is empty.\n";
-        return "" ;
-    }
-    return top->data;
-}
-
-int StackList::getSize(){
-
-    return size;
-}
-
-void StackList::destroy(){
-    StackNode *deletenode = top;
-    while (!IsEmpty()) {
-            deletenode = top ;
-            top = top->next;
-            delete deletenode;
-            deletenode = 0;
-            size--;
-
-    }
-}
+	bool isnum(char i) {
+ 		if( i>='0' && i<='9' ) return true ;
+	 		else return false ;
+	} // 檢查是否為數字 
+	
+	bool issymbol1(char i, int *err, char *ernum) {
+	 	if( i=='+' ||i=='-'|| i=='*'|| i=='/' || i=='('|| i==')' ) return true ;
+	 	else {
+	 		*err = 1 ;
+	 		*ernum = i ;
+			return false ;
+		} // 回傳錯誤的符號 
+	} // 檢查是否為加減乘除
+	
+	bool issymbol2(char i, int *err, char *ernum) {
+	 	if( i=='+' ||i=='-'|| i=='*'|| i=='/' ) return true ;
+	 	else {
+	 		*err = 1 ;
+	 		*ernum = i ;
+			return false ;
+		} // 回傳錯誤的符號 
+	} // 檢查是否為括弧 
 
 
-void readstack () {
-    node *walk ;
-    walk = new node() ;
-    walk = head ;
-    int num = 0, set = 0 ;
-    bool first = true ;
-    StackList operationStack ;
-    while ( walk != NULL ) {
-         if ( walk->data == "(" || walk->data == "[" || walk->data == "{" ){
-            operationStack.Push( walk -> data ) ;
-            num= 0 ;
-            set = 0 ;
-         }
+		
+	bool Input( int *err, char *ernum ) {
+			
+		head->next = NULL ; 
+		
+		int size ;
+			
+		cin.getline(temp,100);
+		strcat(temp, "\n"); // 增加一個回車符號 
+		
+		if( analyze( temp, &*err, &*ernum ) ) return true ;
+		else return false ;
+	}
+		
+	bool analyze( char temp[100], int *err, char *ernum ){
+		
+	int i=0, j=0, x=0 ;
+	int parentthesis=0 ; // 記錄括號 
+	bool extraop = false ;
+		
+		do {
+			if ( temp[i]!=' ' ){
+				if ( isnum(temp[i]) ) {
+			  		char need[100] ;
+			  		
+			   		for ( j=0; isnum(temp[i]); i++ ){
+			    		need[j] = temp[i] ; 
+			    		j++ ; // 換下一個字元 
+			  	 	} // for
+			  	 	
+			  	 	extraop = false ; // 下一個可以是符號
+			       	current->data.assign( need ) ; // 存入 current->data;	
+			  		memset(need, '\0', sizeof(need)); // 初始化need記憶體		
+			  	} // 放入數字
+			  		
+			  	else if ( issymbol1(temp[i], &*err, &*ernum) && extraop==false ){ 
+			    	current->data = temp[i] ;
+			    	if (temp[i]=='(') parentthesis++ ;
+			    	else if (temp[i]==')') parentthesis-- ;
+			    	
+			    	extraop = true ; // 下一個不能是符號 
+			  		i++ ; // 換下一個字元 
+			  	} // 若不是數字，則放入標點符號 
+		  		
+		  		else if (!issymbol1(temp[i], &*err, &*ernum) && !issymbol2(temp[i], &*err, &*ernum) ){
+		  			return false ; // 有不明符號，直接跳掉 
+		  		}
+		  		
+		  		else return false ; //有不明符號 
+		  		
+		  		current->next = new Formula ;
+		  		current = current->next ;
+		  		current->next = NULL ;
+		  	} // if 空白就跳掉 
+	  		
+	  	} while ( temp[i]!='\n' ) ; // while() 
+	  	
+	  	if ( issymbol2(temp[i-1], &*err, &*ernum) ){
+	  		*err=4 ;
+	  		return false ;
+		} // 最後一個是加減乘除，輸入的式子不是一個計算式 
+		
+		else if (extraop ){
+			*err = 3 ; 
+		  	return false ; 
+		} // 連續兩個符號 
+		
+	  	else if ( parentthesis>0 ){
+			*err=21 ;
+			return false ;
+		} // 多左括號 
+		
+		else if ( parentthesis<0 ){
+			*err=22 ;
+			return false ;
+		} // 多右括號 
+		
+		current->next = new Formula ;
+		current = current->next ;
+		current->data = '\n' ; 
+		current->next = NULL ; // linklist最後給一個回車
+	  	
+	  	return true ;
+	} // analyze()
+	
+	void inToPostfix () { 
+	    
+	    char stack[100] ; // 堆疊，存取暫時擋區
+    	int i, j, top;
+    	
+		    for(i = 0, j = 0, top = 0; temp[i] != '\n'; i++) switch(temp[i]) { 
+		        case '(':              // 運算子堆疊 
+		            stack[++top] = temp[i]; 
+		            break; 
+		        case '+': case '-': case '*': case '/': 
+		            while(priority(stack[top]) >= priority(temp[i])) { 
+		                postfix[j++] = stack[top--] ;
+		                cout << postfix[j-1] << ", ";
+		                
+		                putinpost( postfix[j-1] ) ; // 放進post linklist中 
+		                nextpost() ; // 讓post linklist指向next
+		            } 
+		             
+		            stack[++top] = temp[i]; // 存入堆疊 
+		            break; 
+		        case ')': 
+		            while(stack[top] != '(') { // 遇 ) 輸出至 ( 
+		                postfix[j++] = stack[top--] ;
+		            } 
+		            top--;  // 不輸出 
+		            break; 
+		        default:  // 運算元直接輸出 
+		        	while ( isnum( temp[i])==true ) {
+			            postfix[j++] = temp[i];
+			            cout << temp[i] ;
+			            putinpost( temp[i] ) ; // 放進post linklist中 
+			            
+			            if ( isnum( temp[i+1])==true )i++ ;
+			            else break ;
+					} // 遇到數字一次存完 
+						cout << ", " ;
+						nextpost() ; // 讓post linklist指向next
+		    } // for
+		    
+		    while(top > 0) { 
+		        postfix[j++] = stack[top--];
+		        cout << postfix[j-1] ; // 最後一個運算子 
+		        putinpost( postfix[j-1] ) ; // 放進post linklist中
+		        
+		        if ( top > 0 ) {
+		        	cout << ", " ;
+		        	nextpost() ; // 讓post linklist指向next
+				}
+		    }
+		cout << endl ;
+		nextpost() ; // 讓post linklist指向next
+		post->data = '\n' ; 
+		post = ptop ; // post重新指向開頭 
+		
+	} 
 
-        else if ( walk->data == "+" || walk->data == "-" || walk->data == "*" || walk->data == "/" ){
+	int priority(char op) { 
+	    switch(op) { 
+	        case '+': case '-': return 1;
+	        case '*': case '/': return 2;
+	        default:            return 0;
+	    } 
+	}
+	
+	void putinpost ( char postfix ) {
+		post->data = post->data + postfix ;
+	}
+	
+	void nextpost () {
+		post->next = new Formula ;
+		post = post->next ;
+		post->next = NULL ;
+	}
+	
+	int eval() {
+	    char opnd[2] ;
+	    int stack[100] ; 
+	    int ans, top=0, i=0, x=0 ; 
 
-                if ( operationStack.IsEmpty())
-                        operationStack.Push( walk -> data ) ;
-                else if ( num == 2 &&  ( operationStack.Top() == "*" || operationStack.Top() == "/")) {
-                            cout << ","<< operationStack.Top()   ;
-                            operationStack.Pop() ;
-                            set++ ;
-                            if ( set == 2 ) {
-                                cout << ","<< operationStack.Top()   ;
-                                operationStack.Pop() ;
-                                set = 1 ;
-                            }
-                            operationStack.Push( walk -> data ) ;
-                            num= 0 ;
-
-                }
-
-                else if ( (walk->data == "*" || walk->data == "/") && ( operationStack.Top() == "*" || operationStack.Top() == "/")  ) {
-
-                            cout << "," << operationStack.Top()  ;
-                            operationStack.Pop() ;
-                            set++ ;
-                            if ( set == 2 ) {
-                                cout << "," << operationStack.Top()  ;
-                                operationStack.Pop() ;
-                                set = 1 ;
-                            }
-                            operationStack.Push( walk -> data ) ;
-                            num = 0 ;
-                }
-               else if ( (walk->data == "*" || walk->data == "/") && ( operationStack.Top() == "(" || operationStack.Top() == "[" || operationStack.Top() == "{" )  ) {
-                    operationStack.Push( walk -> data ) ;
-                }
-                else if  (walk->data == "*" || walk->data == "/") {
-                    operationStack.Push( walk -> data ) ;
-
-                }
-                else if ( (walk->data == "+" || walk->data == "-") && ( operationStack.Top() == "+" || operationStack.Top() == "-")  ) {
-
-                            cout << ","<< operationStack.Top()   ;
-                            operationStack.Pop() ;
-                            operationStack.Push( walk -> data ) ;
-                }
-                else if ( (walk->data == "+" || walk->data == "-")  ) {
-                        operationStack.Push( walk -> data ) ;
-
-
-                }
-        }
-        else if ( walk->data == ")" || walk->data == "]" || walk->data == "}" ) {
-            while (!( operationStack.Top() == "("|| operationStack.Top() == "[" || operationStack.Top()== "{")) {
-                cout << ","<< operationStack.Top()   ;
-                operationStack.Pop() ;
-            }
-             operationStack.Pop() ;
-        }
-
-        else {
-            if ( first) {
-                cout << walk -> data ;
-                num++ ;
-                first = false ;
-            }
-            else {
-                cout <<","<< walk -> data ;
-                num++ ;
-            }
-
-        }
+    		for ( ; postfix[i] != '\0'; i++) switch(postfix[i]) { 
+        		case '+': case '-': case '*': case '/': 
+            		stack[top-1] = cal( postfix[i], stack[top-1], stack[top]); 
+            		top--; 
+           		break; 
+        	default: 
+            	opnd[0] = postfix[i];
+            	stack[++top] = atof(opnd);
+    		}             
+    
+    return stack[100];
+	}
+	
+	int cal(char op, int p1, int p2) { 
+	    switch(op) { 
+        case '+': return p1 + p2; 
+        case '-': return p1 - p2; 
+        case '*': return p1 * p2; 
+        case '/': return p1 / p2; 
+    	}
+	}
+}; // class 
 
 
-         walk = walk -> next ;
-    }
 
-    while ( !operationStack.IsEmpty()) {
-       cout << ","<< operationStack.Top()   ;
-       operationStack.Pop() ;
-    }
 
-    operationStack.destroy() ;
-} // readStack()
+int main (void){
+	int command, err=0 ;
+	char ernum ; // 抓錯的字元 
+		
+	do {
+		stracklist strack ;
+	
+		cout << endl << "* Arithmetic Expression Evaluator *" ;
+  		cout << endl << "* 0. QUIT                         *" ; 
+  		cout << endl << "* 1. Infix2postfix Evaluation     *" ;
+  		cout << endl << "* ***********************************" ;
+  		cout << endl << "Input a choice(0, 1):" ;  	
+  		cin >> command ; //輸入0or1指令 
 
-int main(void) {
-  int command = 0 ; // user command
-  do {
+		switch(command){
+			case 0 : break ; //跳出，結束 
+  		
+  			case 1 : //檢查並算出 
+  				cin.ignore(200, '\n');
+  				cout << endl << "Input an infix expression: " ;
+  				
+  				if ( strack.Input(&err, &ernum) ) cout << "It is a legitimate infix expression." << endl ;
+  				else if( err==1 ) cout << "Error 1: " << ernum << "is a legitimate character." << endl ;
+  				else if( err==21 ) cout << "Error 2: there is one extra open parenthesis." << endl ;
+  				else if( err==22 ) cout << "Error 2: there is one extra close parenthesis." << endl ;
+  				else if( err==3 ) cout << "Error 3: there is one extra operand." << endl ;
+  				else if( err==4 ) cout << "Error 4: this is not a calculation formula." << endl ;
 
-  	cout << endl << "*** Arithmetic Expression Evaluator ***" ;
-  	cout << endl << "*   0. Quit                           *" ;
-  	cout << endl << "*   1. Check infix expression         *" ;
-  	cout << endl << "*   2. Infix -> postfix Evaluation    *" ;
-  	cout << endl << "***************************************" ;
-  	cout << endl << "Input a command( 0, 1, 2 ) :" ;
-  	cin >> command ; // get the command
-  	switch(command){
-		case 0 : break ; //���X�A����
-
-  		case 1 : //�ˬd���Ǧ��O�_���T
-  			cout << endl << "Input an infix expression: " ;
-  			readlist() ;
-  			break ;
-
-  		case 2 :
-  			cout << endl << "Input an infix expression: " ;
-  			if (readlist() )
-                readstack() ;
-  			cout << endl ;
-  			break ;
-
-  		default :
-			cout << endl << "command does not exist !!" << endl ;
-  			break ;
-
-  			del(head)  ;
-	} // end switch
-
-  } while ( command != 0 ) ;
-
-  system( "pause") ; // pause the display
-  return 0 ;
-} // main()
-
-// (29+101)*33/25
-// 24*7770/(55+30*2)  24*7770/(30*2 +55)
-// (90+(70*(68-55/10)))    (90+((68-55/10)*70))
-// 69/3+30*5-24/8
-// 69/3+30*5-24/8+25*87
+  				cout << "Postfix expression: " ;
+  				strack.inToPostfix() ; // 分類，轉後序式並且輸出至螢幕 
+  				
+  				cout << "Answer: " ;
+  				cout << strack.eval() << endl ;
+  				break ;
+  			
+  			default : 
+			  	cout << endl << "command does not exist !!" << endl ;
+  				break ;
+		} // end switch
+		
+	}while(command!=0); // break out the loop 
+  
+	system ("pause") ; // 查看運作過程 
+	return 0 ;
+  
+} //end main()
